@@ -11,41 +11,52 @@ import { fileURLToPath } from "url";
 
 dotenv.config();
 
-// ✅ Fix __dirname for ES modules
+// Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 5001;
 
-// ✅ 1. CORS
+// --------------------
+// 1️⃣ CORS
+// Use CLIENT_URL env for production
 app.use(
   cors({
-    origin: "http://localhost:4000",
+    origin: process.env.CLIENT_URL || "http://localhost:4000",
     credentials: true,
   })
 );
 
-// ✅ 2. Middlewares
+// --------------------
+// 2️⃣ Middlewares
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ 3. API Routes
+// --------------------
+// 3️⃣ API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-// ✅ 4. Serve Frontend in Production
+// --------------------
+// 4️⃣ Serve Frontend in Production
 if (process.env.NODE_ENV === "production") {
+  // Serve static files
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  app.get("/*", (req, res) => {
-    res.sendFile(
-      path.join(__dirname, "../frontend/dist/index.html")
-    );
+  // Regex route for React SPA - prevents path-to-regexp errors
+  app.get(/.*/, (req, res) => {
+    try {
+      res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+    } catch (err) {
+      console.error("Error serving frontend:", err);
+      res.status(500).send("Server error");
+    }
   });
 }
 
-// ✅ 5. Start Server
+// --------------------
+// 5️⃣ Start Server
 server.listen(PORT, () => {
-  console.log("Server running on PORT:", PORT);
+  console.log(`Server running on PORT: ${PORT}`);
   connectDB();
 });
