@@ -1,54 +1,51 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./lib/db.js";
-
 import path from "path";
-
-import authRoutes from "./routes/auth.routes.js";
-import messageRoutes from "./routes/message.routes.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { app,server } from "./lib/socket.js";
-import { Server } from "socket.io";
-
+import authRoutes from "./routes/auth.routes.js";
+import messageRoutes from "./routes/message.routes.js";
+import { app, server } from "./lib/socket.js";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
+// ✅ Fix __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 5001;
 
+// ✅ 1. CORS
+app.use(
+  cors({
+    origin: "http://localhost:4000",
+    credentials: true,
+  })
+);
 
-
-// ✅ 1. CORS FIRST
-app.use(cors({
-  origin: "http://localhost:4000",
-  credentials: true,
-  
-}));
-
-// ✅ 2. Then JSON + cookies
+// ✅ 2. Middlewares
 app.use(express.json());
 app.use(cookieParser());
 
-
-
-
-
-// ✅ 3. Routes
+// ✅ 3. API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-if(process.env.NODE_ENV==="production"){
-  app.use(express.static(path.json(__dirname, "../frontend/dist")))
+// ✅ 4. Serve Frontend in Production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-
-  app.get("*", (req,res) => {
-    res.sendFile(path.json(__dirname, "../frontend", "dist", "index.html"));
-  })
+  app.get("*", (req, res) => {
+    res.sendFile(
+      path.join(__dirname, "../frontend/dist/index.html")
+    );
+  });
 }
 
-// ✅ 4. Start server
+// ✅ 5. Start Server
 server.listen(PORT, () => {
-  console.log("Server is running on PORT:", PORT);
+  console.log("Server running on PORT:", PORT);
   connectDB();
 });
