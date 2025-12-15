@@ -38,21 +38,25 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
 // --------------------
+//// --------------------
 // 4️⃣ Serve Frontend in Production
 if (process.env.NODE_ENV === "production") {
-  // Serve static files
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  const frontendPath = path.join(__dirname, "../../frontend/dist");
 
-  // Regex route for React SPA - prevents path-to-regexp errors
+  // Serve static files
+  app.use(express.static(frontendPath));
+
+  // React SPA fallback
   app.get(/.*/, (req, res) => {
     try {
-      res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+      res.sendFile(path.join(frontendPath, "index.html"));
     } catch (err) {
       console.error("Error serving frontend:", err);
       res.status(500).send("Server error");
     }
   });
 }
+
 
 // --------------------
 // 5️⃣ Start Server
