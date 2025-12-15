@@ -17,7 +17,7 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5001;
 
-const __dirname = path.resolve();
+
 
 // ✅ 1. CORS FIRST
 app.use(cors({
